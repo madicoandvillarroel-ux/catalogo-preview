@@ -1,0 +1,5 @@
+{
+  "csvUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXB7mk7W3afilEpEHI_Czd5NqICwb2mY3rVLp123cdk4URUd8UcMTeF611723Wyu61i7InxtPffuuM/pub?gid=0&single=true&output=csv",
+  "shipCsvUrl": "PENDIENTE_URL_SHIP_ORDERS",
+  "ordersUrl": "https://script.google.com/macros/s/TESTMOCK/exec"
+}

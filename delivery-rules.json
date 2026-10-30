@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "ports": [
+    {
+      "port": "Valencia",
+      "goodsUSD": 200,
+      "sims": 5
+    },
+    {
+      "port": "Algeciras",
+      "goodsUSD": 800,
+      "sims": 10
+    },
+    {
+      "port": "Barcelona",
+      "goodsUSD": 800,
+      "sims": 10
+    },
+    {
+      "port": "Sagunto",
+      "goodsUSD": 600,
+      "sims": 10
+    },
+    {
+      "port": "Tarragona",
+      "goodsUSD": 1000,
+      "sims": 10
+    },
+    {
+      "port": "Bilbao",
+      "goodsUSD": 1000,
+      "sims": 10
+    },
+    {
+      "port": "Vigo",
+      "goodsUSD": 1000,
+      "sims": 10
+    },
+    {
+      "port": "Cartagena",
+      "goodsUSD": 1000,
+      "sims": 10
+    },
+    {
+      "port": "Castellón",
+      "goodsUSD": 1000,
+      "sims": 10
+    }
+  ],
+  "otherPortSIMs": 10,
+  "storePickupUSD": 49,
+  "storeTransportUSD": 5
+}

@@ -1,0 +1,51 @@
+# The Seaman's Shop · catálogo estático (Apache / Plesk)
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_mime.c>
+  AddType text/javascript .mjs .js
+  AddType application/json .json
+  AddType application/manifest+json .webmanifest
+  AddType image/webp .webp
+  AddType application/octet-stream .bin
+  AddType font/woff2 .woff2
+  AddType image/svg+xml .svg
+  AddCharset utf-8 .html .js .mjs .css .json .webmanifest .txt
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  # Código, datos y configuración: siempre comprobar si hay versión nueva.
+  <FilesMatch "\.(html|js|mjs|css|json|webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <Files "sw.js">
+    Header set Cache-Control "no-cache, no-store"
+  </Files>
+  # Fotos y fuentes: caché de 1 día (el modo offline guarda su propia copia).
+  <FilesMatch "\.(webp|png|jpe?g|svg|woff2)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/json application/manifest+json image/svg+xml text/plain
+</IfModule>
+
+<Files "LEEME.txt">
+  Require all denied
+</Files>
+
+<Files "offline-pack.bin">
+  Header set Cache-Control "no-cache"
+  Header unset Content-Encoding
+</Files>
+
+<FilesMatch "\.(py|mjs|ttf|yml|txt)$">
+  <If "%{REQUEST_URI} =~ m#^/(pdf|tools)/#">
+    Require all denied
+  </If>
+</FilesMatch>
+<Files "catalog.pdf">
+  Header set Cache-Control "public, max-age=3600"
+</Files>

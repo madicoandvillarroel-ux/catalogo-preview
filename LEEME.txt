@@ -1,0 +1,56 @@
+CATÁLOGO THE SEAMAN'S SHOP · VERSIÓN ESTÁTICA (Plesk / Apache)
+=============================================================
+
+1) SUBIR
+- Plesk > Sitios web y dominios > el subdominio (p. ej. catalog.theseamanshop.com)
+  > Administrador de archivos > entrar en su carpeta raíz (document root,
+  normalmente "catalog.theseamanshop.com" o "httpdocs").
+- Subir static-catalog.zip > clic derecho > "Extraer archivos".
+- Comprobar que index.html, .htaccess y la carpeta assets/ quedan DIRECTAMENTE
+  en la raíz (no dentro de otra carpeta "static-catalog"). Si quedan dentro,
+  mover su contenido a la raíz.
+- Activar SSL (Let's Encrypt) en el subdominio: sin https no funciona el modo offline.
+- Borrar el .zip del servidor cuando termine.
+
+2) DATOS EN VIVO (URL DEL CSV)
+- Archivo: config.json  ->  clave "csvUrl"  (YA PUESTA con el enlace CSV
+  publicado de la pestaña del catálogo). Para cambiarla, editar config.json
+  con el Administrador de archivos de Plesk y guardar.
+- Si se pone "PENDIENTE_URL_CSV" (o el CSV falla en la primera visita), el
+  catálogo usa products.json (copia fija incluida en el paquete).
+- Celdas con errores de la hoja (#REF!, #N/A...) se leen como vacías.
+- Cómo crear el CSV: en la hoja, crear una pestaña aparte SOLO con estas
+  columnas y estos títulos exactos en la fila 1:
+  S | ARTICULO | PRICE | DISPONIBLE | FAMILIA | SUBFAMILIA | EN CATALOGO PDF |
+  OUTLET | REPOSICIÓN | CATÁLOGO | TALLAS (padre / talla) |
+  WEB DESCRIPCION FINAL | WEB ESTADO CATÁLOGO
+  (columnas A:C, AA, AI:AJ, AL:AM, AP:AQ, AV:AX de ARTICULOS, unidas en ese orden).
+  Archivo > Compartir > Publicar en la web > esa pestaña > "Valores separados
+  por comas (.csv)" > Publicar > copiar el enlace.
+- IMPORTANTE: publicar SOLO esa pestaña. Lo publicado es público. Nunca
+  publicar costes, proveedores, ENLACE1-3 ni notas internas. Si el CSV trae
+  columnas no permitidas, el catálogo lo rechaza y sigue con el último bueno.
+- El catálogo lee el CSV al abrir, al volver a la pestaña y al reconectar
+  (Google tarda unos 5 minutos en refrescar lo publicado). Si el CSV falla o
+  parece incompleto, se queda con el último catálogo bueno.
+
+3) FOTOS Y PRODUCTOS
+- Precio, stock (DISPONIBLE), visibilidad, descripción, familias y tallas:
+  se cambian en la hoja; se actualizan solos vía CSV.
+- Fotos nuevas o productos nuevos con foto: necesitan una versión nueva del
+  paquete (fotos en assets/ + data/enrichment.json). Pedírsela a Claude y
+  volver a subir/extraer el zip (sobrescribir). Si se cambió la URL del CSV
+  a mano, revisar config.json después.
+- Mínimos por puerto: delivery-rules.json.
+
+4) MODO OFFLINE
+- "Save offline · X MB" descarga UN solo archivo (offline-pack.bin, unos 3-4 MB)
+  con una foto pequeña de cada producto. Los datos (precios, stock) ya se
+  guardan solos. Las fotos grandes y galerías solo se ven con conexión.
+- El botón muestra el tamaño y el % mientras descarga.
+- El paquete se regenera con cada versión nueva (fotos nuevas). Los cambios
+  de la hoja (precio, stock) NO obligan a descargarlo otra vez.
+
+5) PEDIDOS
+- Los pedidos se envían por WhatsApp (+34 655 322 014) desde "My list".
+  No hay portal de pedidos ni base de datos en esta versión.

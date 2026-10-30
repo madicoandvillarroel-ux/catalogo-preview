@@ -1,0 +1,20 @@
+{
+  "name": "The Seaman’s Shop",
+  "short_name": "The Seaman’s Shop",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#031046",
+  "theme_color": "#031046",
+  "description": "Browse, prepare and save your crew’s order list.",
+  "icons": [
+    {
+      "src": "assets/app-icon-blue-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./",
+  "prefer_related_applications": false
+}
