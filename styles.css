@@ -213,7 +213,7 @@ h1,h2,.info-dialog-copy h3,.info-dialog-copy h4,.sim-intro h3,.outlet-intro h3,.
 
 /* By section (Madico 01/11): family titles stay on top while scrolling; quick jump bar. */
 .sec-jump{position:sticky;top:0;z-index:30;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 0 6px;background:var(--paper);scrollbar-width:none}.sec-jump::-webkit-scrollbar{display:none}.sec-jump button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--navy)}.sec-jump button:active{background:var(--navy);color:#fff}
-.sec-fam{grid-column:1/-1;position:sticky;top:46px;z-index:20;margin:18px 0 0;padding:10px 14px;background:var(--navy);color:#fff;font-size:16px;letter-spacing:1px;border-radius:10px;scroll-margin-top:46px}.sec-fam:first-child{margin-top:0}
+.sec-fam{grid-column:1/-1;position:sticky;top:54px;z-index:20;margin:18px 0 0;padding:10px 14px;background:var(--navy);color:#fff;font-size:16px;letter-spacing:1px;border-radius:10px;scroll-margin-top:54px}.sec-fam:first-child{margin-top:0}
 .sec-grp{grid-column:1/-1;margin:2px 0 0;padding:2px 2px 4px;font-size:12px;letter-spacing:1px;color:var(--blue);border-bottom:2px solid var(--line);text-transform:uppercase}
 
 .test-banner{background:#c62828;color:#fff;font:700 11px Inter,Arial,sans-serif;text-align:center;padding:4px 8px;letter-spacing:.5px}
