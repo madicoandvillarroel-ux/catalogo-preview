@@ -187,7 +187,13 @@ def footer2(page):
     c.linkURL('https://wa.me/34655322014', (10, y, 10 + w * 0.22, y + h), relative=0)
     c.linkURL(URL, (10 + w * 0.23, y, 10 + w * 0.44, y + h), relative=0)
     c.setFillColorRGB(*MUTED); c.setFont('Sans', 5.5); c.drawString(M, 3, 'Prices in USD (Valencia) · Tap a product to order it online · Page %d' % page)
+# TYPE = first words of the name (ARTICULOS naming rule, 01/11); pdf/tipos.csv is the list of types. Longest type wins (CAMERA FILM before CAMERA).
+TIPOS = sorted({l.split(';')[0].strip().upper() for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tipos.csv'), encoding='utf-8-sig') if l.strip()}, key=len, reverse=True) if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tipos.csv')) else []
 def brand_split(name):
+    up = ' '.join(str(name).split()).upper()
+    for t in TIPOS:
+        if up == t: return str(name), ''
+        if up.startswith(t + ' '): return ' '.join(str(name).split()[:len(t.split())]), ' '.join(str(name).split()[len(t.split()):])
     w = str(name).split()
     if len(w) <= 2: return str(name), ''
     head = ' '.join(w[:2]) if len(w[0]) <= 4 or w[0].upper() in ('MADE', 'NEW', 'THE') else w[0]
@@ -228,11 +234,7 @@ def cell(p, x, ytop, w=None, h=None):
     for line in wrap(rest.upper(), 'Cond', 8, CW - 10, 2 if extra < 2 else 1): c.drawCentredString(cx, yy, line); yy -= 9
     if p.get('sizes'): c.setFont('Cond', 7); c.setFillColorRGB(*MUTED); c.drawCentredString(cx, yy, ('Sizes: ' + ' · '.join(p['sizes']))[:60]); yy -= 8.6
     if promo:
-        # promo text comes from ARTICULOS BG: shrink it to fit the cell, never wider than the product
-        ptxt = promo.upper()[:60]; fs_ = 8
-        while fs_ > 5.6 and c.stringWidth(ptxt, 'CondB', fs_) + 12 > CW - 4: fs_ -= 0.2
-        while c.stringWidth(ptxt, 'CondB', fs_) + 12 > CW - 4: ptxt = ptxt[:-2].rstrip() + '…'
-        c.setFont('CondB', fs_); pw_ = c.stringWidth(ptxt, 'CondB', fs_) + 12
+        ptxt = promo.upper()[:44]; c.setFont('CondB', 8); pw_ = c.stringWidth(ptxt, 'CondB', 8) + 12
         c.setFillColorRGB(0.80, 0.10, 0.12); c.roundRect(cx - pw_ / 2, yy - 3, pw_, 12, 6, stroke=0, fill=1)
         c.setFillColorRGB(1, 1, 1); c.drawCentredString(cx, yy, ptxt); yy -= 13
     sf_ = '' if p.get('_onegroup') else (p.get('group') or p.get('subfamily') or '').strip().upper()

@@ -187,8 +187,6 @@ h1,h2,.info-dialog-copy h3,.info-dialog-copy h4,.sim-intro h3,.outlet-intro h3,.
 .add-confirmation{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(620px,calc(100% - 24px));display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:2px solid #268263;border-radius:12px;box-shadow:0 8px 30px #062b4c33;z-index:60}.add-confirmation>div{min-width:0;flex:1}.add-confirmation strong,.add-confirmation span{display:block;overflow-wrap:anywhere}.add-confirmation strong{font-size:14px;color:#175c44}.add-confirmation span{font-size:12px;color:var(--muted);margin-top:4px}.add-confirmation .btn{flex-shrink:0;padding:12px}.has-list-items .mobile-tray{display:flex}.has-list-items{padding-bottom:95px}.toast{bottom:calc(100px + env(safe-area-inset-bottom,0px))}dialog .toast{z-index:100}.has-list-items .mobile-tray{z-index:40}@media(min-width:761px){.has-list-items .mobile-tray{position:fixed;bottom:0;left:0;right:0;align-items:center;justify-content:space-between;padding:12px max(24px,calc((100vw - 1244px)/2));background:var(--navy);color:white;gap:15px}.has-list-items .mobile-tray small,.has-list-items .mobile-tray strong{display:block}.has-list-items .mobile-tray small{font-size:10px;opacity:.8}.has-list-items .mobile-tray button{background:white;color:var(--navy);padding:12px 18px;border-radius:8px;font-weight:bold}}@media(max-width:420px){.add-confirmation{flex-wrap:wrap;padding:12px;gap:8px}.add-confirmation>div{flex-basis:calc(100% - 40px)}.add-confirmation .btn{order:3;width:100%}}
 
 .magnet-bundle-offer{background:#e8f5ed;color:#16583b;border-left:3px solid #238353;border-radius:7px;padding:10px 12px;margin:10px 0}.magnet-bundle-offer strong,.magnet-bundle-offer span,.magnet-bundle-offer small{display:block}.magnet-bundle-offer strong{font-size:15px}.magnet-bundle-offer span{font-size:12px;margin-top:2px}.magnet-bundle-offer small{font-size:11px;margin-top:5px;color:#365d49}
-#bundle-savings{background:none;border:0;padding:0;display:flex;flex-direction:column;gap:6px}#bundle-savings .deal-note{font-size:14px;padding:9px 12px;border-radius:8px}#bundle-savings em{font-style:normal;font-weight:600}
-.deal-note{display:block;font-weight:700;font-size:12px;line-height:1.3;border-radius:6px;padding:4px 7px;margin-top:4px;text-align:left}.deal-note.todo{background:#fff1e0;color:#9a4f00;border:1px solid #f2c48d}.deal-note.ok{background:#e3f6ea;color:#17683f;border:1px solid #9fd8b5}.deal-was{display:block;color:#7b8b96;font-size:12px}.order-item .deal-note{margin:5px 0 6px}
 
 /* The first view: three compact, swipeable product shelves. */
 .catalog-discovery{padding-block:8px 22px}.catalog-discovery[hidden]{display:none}.discovery-section{margin:0 0 25px}.discovery-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 12px}.discovery-heading h2{font-family:'League Spartan',sans-serif;font-size:30px;line-height:1;margin:0 0 5px;color:#062b4c}.discovery-heading p{font-size:12px;color:#617184;margin:0}.discovery-all{background:none;border:0;color:#062b4c;font-weight:700;font-size:13px;white-space:nowrap;padding:10px 0;cursor:pointer}.discovery-rail{display:grid;grid-auto-flow:column;grid-auto-columns:210px;gap:12px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:2px 2px 12px}.discovery-card{background:#fff;border:1px solid #dce4eb;border-radius:13px;overflow:hidden;scroll-snap-align:start;position:relative;display:flex;flex-direction:column}.discovery-photo{height:140px;width:100%;display:flex;align-items:center;justify-content:center;border:0;background:#f8fafc;padding:12px;cursor:pointer;overflow:hidden}.discovery-photo img,.discovery-photo svg{width:100%;height:100%;object-fit:contain}.discovery-copy{padding:11px;display:flex;flex-direction:column;flex:1}.discovery-copy .art{font-size:9px;margin:0 0 5px;letter-spacing:.04em}.discovery-copy h3{font-size:13px;line-height:1.35;margin:0 0 12px;min-height:53px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.discovery-bottom{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-top:auto}.discovery-bottom .price{font-size:23px}.discovery-bottom .price small{font-size:9px}.discovery-bottom .add-button{padding:7px 9px;min-height:34px;font-size:12px}.discovery-empty{color:#617184}.discovery-photo .photo-frame{height:100%;width:100%}
@@ -212,67 +210,10 @@ h1,h2,.info-dialog-copy h3,.info-dialog-copy h4,.sim-intro h3,.outlet-intro h3,.
 #category-list .category-button:hover,#subcategory-buttons button:hover{background:#cde6f9;border-color:#83b8dc}
 #category-list .category-button.active,#category-list .category-button[aria-pressed="true"],#subcategory-buttons button.active,#subcategory-buttons button[aria-pressed="true"]{background:#062b4c;border-color:#062b4c;color:#fff;font-weight:700}
 #category-list .category-button.active small,#category-list .category-button.active .cat-icon,#category-list .category-button[aria-pressed="true"] small,#subcategory-buttons button[aria-pressed="true"] small{color:#d8edff}
-/* Short screen or keyboard open: the footer scrolls with the form, so every field stays reachable */
-@media (max-height:560px){#list-dialog{overflow-y:auto;overscroll-behavior:contain}#list-dialog .list-scroll{flex:none;overflow:visible;min-height:auto}#list-dialog>.list-bottom{flex:none;box-shadow:none}}
-#list-dialog.kb-open{overflow-y:auto;overscroll-behavior:contain}#list-dialog.kb-open .list-scroll{flex:none;overflow:visible;min-height:auto}#list-dialog.kb-open>.list-bottom{flex:none;box-shadow:none}
-/* Free gift line ($0) under the article */
-.order-item.gift-line{background:#f2faf4;border:1px dashed #9bd3ab;border-radius:10px;padding:10px}
-.gift-line>div{min-width:0}.gift-line h3{white-space:normal;overflow-wrap:anywhere;font-size:13px}
-.gift-line .mini-sim{font-size:22px;background:none;border:0}
-.gift-choice{display:block;width:100%;max-width:100%;font:inherit;font-size:13px;padding:7px 8px;margin:6px 0 2px;border:1px solid #9bd3ab;border-radius:8px;background:#fff;color:inherit}
-.gift-line .order-item-right strong{color:#1c8a3c}
 
-/* My orders: own window (same side panel as My list) and a button next to My list */
-#orders-dialog{width:min(510px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;position:fixed;inset:0 0 0 auto;margin:0;border-radius:0;display:none;flex-direction:column}
-#orders-dialog[open]{display:flex}#orders-dialog .dialog-head{flex-shrink:0}
-.orders-button[hidden]{display:none}
-.orders-button .orders-count{min-width:18px;height:20px;padding:0 5px;border-radius:10px;background:#1f9d55;color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
-.order-sent .btn{margin:8px 0 4px;width:100%}
-@media(max-width:700px){.orders-button{font-size:12px!important;padding:9px 10px!important;gap:6px}.orders-button svg{display:none}}
-@media(max-width:480px){.header{gap:6px}.brand{min-width:0;flex:0 1 auto}.brand img{max-width:140px;height:auto}.header-info{width:30px;height:30px;font-size:15px}.header .list-button{padding:8px!important;font-size:11px!important;white-space:nowrap;gap:5px}}
-@media(max-width:480px){.hide-xs{display:none}.header .brand{flex:0 1 150px;min-width:0}.header .brand img{width:100%;max-width:150px;height:auto}}
+/* By section (Madico 01/11): family titles stay on top while scrolling; quick jump bar. */
+.sec-jump{position:sticky;top:0;z-index:30;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 0 6px;background:var(--paper);scrollbar-width:none}.sec-jump::-webkit-scrollbar{display:none}.sec-jump button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--navy)}.sec-jump button:active{background:var(--navy);color:#fff}
+.sec-fam{grid-column:1/-1;position:sticky;top:46px;z-index:20;margin:18px 0 0;padding:10px 14px;background:var(--navy);color:#fff;font-size:16px;letter-spacing:1px;border-radius:10px;scroll-margin-top:46px}.sec-fam:first-child{margin-top:0}
+.sec-grp{grid-column:1/-1;margin:2px 0 0;padding:2px 2px 4px;font-size:12px;letter-spacing:1px;color:var(--blue);border-bottom:2px solid var(--line);text-transform:uppercase}
 
-/* ===== Simple web (30/10): less text, profile once, one open order ===== */
-.vessel-chip{border:0;border-radius:20px;background:#e8f0f5;color:#062b4c;font:700 12px Inter,Arial,sans-serif;padding:8px 12px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.product-call-setup,.orders-button,.header-info,.crew-essentials,.how-steps,.port-call,.list-pilot,.privacy-note,.list-tools,.message-preview,#save-status,#delivery-form,#place-online-order,#online-order-help,.list-send-alternative,.list-bottom .consent,#whatsapp-help,.order-totals small,.card-detail,.card-stock,.order-item .order-stock,#minimum-status{display:none!important}
-
-#profile-dialog,#login-dialog{width:min(440px,100vw);max-height:100dvh;border-radius:14px}
-.simple-form{padding:4px 20px 22px;display:grid;gap:10px}
-.simple-form label{display:grid;gap:4px;font-size:12px;font-weight:700;color:#55707f}
-.simple-form input,.simple-form select{font:16px Inter,Arial,sans-serif;padding:11px 12px;border:1px solid #d6e3ec;border-radius:10px;color:#22384a;background:#fff;width:100%}
-.simple-form .consent{display:flex;gap:8px;align-items:center;font-weight:400;font-size:13px;color:#22384a}.simple-form .consent input{width:auto}
-.simple-form small{font-weight:400}.p-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn-navy{background:#062b4c;color:#fff;border:0;border-radius:12px;padding:14px;font:800 16px Inter,Arial,sans-serif;width:100%}
-.form-errors{color:#b3261e;font-size:13px;margin:0}.code-input{letter-spacing:5px;text-align:center;font-weight:800;text-transform:uppercase}
-.open-order{border:2px solid #062b4c;border-radius:14px;padding:8px 12px;margin-bottom:12px}
-.oo-head{display:flex;justify-content:space-between;font-size:12px;color:#55707f;padding:4px 0 6px}
-.oo-line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #d6e3ec;font-size:14px}
-.oo-line.gift{background:#f2faf4;border-radius:8px;padding:8px}.oo-name small{display:block;color:#55707f;font-size:12px}
-.st{font-size:11px;font-weight:800;border-radius:10px;padding:3px 8px;white-space:nowrap}.st.ok{background:#e3f5ea;color:#16753e}.st.pending{background:#fff3df;color:#a96500}.st.info{background:#eaf2f8;color:#2b6a95}.st.bad{background:#fdecea;color:#b3261e}
-.oo-total{display:flex;justify-content:space-between;font-weight:800;padding:10px 0 4px;border-top:1px solid #d6e3ec}
-.ns-head{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#55707f;margin:6px 0 0}
-.shop-note{width:100%;margin:10px 0 0;padding:10px 12px;border:1px solid #d6e3ec;border-radius:10px;font:14px Inter,Arial,sans-serif}
-.past-orders h4{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:#55707f;margin:18px 0 4px}
-.past{display:flex;justify-content:space-between;font-size:12px;color:#55707f;padding:7px 0;border-bottom:1px solid #d6e3ec}
-.link-btn{background:none;border:0;color:#126ca0;text-decoration:underline;font:13px Inter,Arial,sans-serif;padding:12px 0;cursor:pointer}
-@media(max-width:480px){.vessel-chip{font-size:11px;padding:7px 9px;max-width:40vw}}
-.order-empty{padding:14px 0!important;text-align:center}.order-empty .btn{width:100%}
-.order-totals[hidden]{display:none}
-@media(max-width:480px){.vessel-chip{white-space:normal;line-height:1.15;text-align:left;max-width:34vw;font-size:11px}}
-/* Phone in landscape: hero text full width, buttons below; vessel chip not cut */
-@media(max-height:500px) and (max-width:950px){.catalog-entry{flex-direction:column;align-items:stretch;gap:12px}.entry-actions{flex-wrap:wrap}}
-@media(min-width:481px){.vessel-chip{max-width:none;text-overflow:clip}}
-.vessel-chip{flex-shrink:0}
-.vessel-chip{white-space:nowrap;line-height:1.15;text-align:left}.vessel-chip small{display:block;font-weight:600;font-size:10px;color:#55707f}
-@media(max-width:480px){.vessel-chip{white-space:nowrap;max-width:40vw;flex-shrink:1;overflow:hidden;text-overflow:ellipsis}}
-@media(max-width:400px){.header .brand{flex-basis:120px}.header .brand img{max-width:120px}.vessel-chip{max-width:42vw}}
-@media(min-height:561px){#list-dialog:not(.kb-open){overflow:hidden}}
-
-/* a) one-line «added» note, b) folded open order */
-.toast{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:8px 14px}
-#add-confirmation{display:none!important}
-.open-order summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.open-order summary::-webkit-details-marker{display:none}
-.oo-caret{font-size:14px;color:#062b4c;transition:transform .2s}.open-order details[open] .oo-caret{transform:rotate(180deg)}
-.open-order.folded{padding:4px 12px}
 .test-banner{background:#c62828;color:#fff;font:700 11px Inter,Arial,sans-serif;text-align:center;padding:4px 8px;letter-spacing:.5px}

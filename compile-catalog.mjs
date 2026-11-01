@@ -1,11 +1,13 @@
 import {applyArticleRows,artKey,headerKey,parseUSD,stockFromRows} from './catalog-data.mjs';
 export const SAFE_HEADERS=['S','ARTICULO','PRICE','DISPONIBLE','EN CATALOGO PDF','OUTLET','REPOSICIÓN','CATÁLOGO','TALLAS (padre / talla)','WEB DESCRIPCION FINAL','WEB ESTADO CATÁLOGO','FAMILIA','SUBFAMILIA','WEB NOMBRE','WEB VISIBLE',...[1,2,3,4,5,6].map(n=>'WEB FOTO '+n)];
-// ARTICULOS BD:BJ. Matched by the start of the header, so the notes in brackets can change.
-export const PROMO_HEADERS=['PROMO GRUPO','PROMO UNIDADES','PROMO PRECIO PACK','PROMO TEXTO','PRECIO ANTES','REGALO ARTS','REGALO'];
+// ARTICULOS BD:BG (Madico 30/10: promos come from the sheet). Matched by the start of the header, so the notes in brackets can change.
+// PRECIO ANTES / REGALO columns may come in the same CSV; they are ignored here.
+export const PROMO_HEADERS=['PROMO GRUPO','PROMO UNIDADES','PROMO PRECIO PACK','PROMO TEXTO'];
+const IGNORED_HEADERS=['PRECIO ANTES','REGALO'];
 export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}}={}){
  if(!Array.isArray(rows)||rows.length<2||rows.length>10000)throw Error('Invalid article rows');
  const headers=rows[0].map(headerKey),allowed=new Set(SAFE_HEADERS.map(headerKey));
- if(headers.some(h=>!allowed.has(h)&&!PROMO_HEADERS.some(x=>h.startsWith(x)))||new Set(headers).size!==headers.length)throw Error('Only customer-facing columns are accepted');
+ if(headers.some(h=>!allowed.has(h)&&![...PROMO_HEADERS,...IGNORED_HEADERS].some(x=>h.startsWith(x)))||new Set(headers).size!==headers.length)throw Error('Only customer-facing columns are accepted');
  for(const name of ['S','ARTICULO','PRICE','DISPONIBLE','WEB DESCRIPCION FINAL'])if(!headers.includes(headerKey(name)))throw Error('Missing '+name);
  if(rows.some(r=>!Array.isArray(r)||r.length>headers.length||r.some(c=>typeof c==='object'||String(c??'').length>12000)))throw Error('Invalid article cell');
  const col=name=>headers.indexOf(headerKey(name)),index=new Map();for(const row of rows.slice(1)){const key=artKey(row[col('S')]);if(key&&!index.has(key))index.set(key,row);}
@@ -33,20 +35,14 @@ export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}
   const product={...newProduct(key,group[0],name.length>=8?name:first),price:prices[0],visible:true};originals.push(product);existing.add(key);added.push(product.art);
  }
  const result=applyArticleRows(originals,rows,{enrichment});
- // Promo per article: same PROMO GRUPO = units can be mixed. No promo columns = keep old behaviour (p.promo undefined).
- const promoCol=Object.fromEntries(PROMO_HEADERS.map(x=>[x,headers.findIndex(h=>h.startsWith(x)&&!PROMO_HEADERS.some(y=>y.length>x.length&&y.startsWith(x)&&h.startsWith(y)))])),hasPromo=promoCol['PROMO GRUPO']>=0;
+ // Promo per article: same PROMO GRUPO = units can be mixed. No promo columns = old behaviour (p.promo undefined).
+ const promoCol=Object.fromEntries(PROMO_HEADERS.map(x=>[x,headers.findIndex(h=>h.startsWith(x))])),hasPromo=promoCol['PROMO GRUPO']>=0;
  const promoGroups=new Map();if(hasPromo)for(const r of index.values()){const g=headerKey(r[promoCol['PROMO GRUPO']]);if(g)promoGroups.set(g,(promoGroups.get(g)||0)+1);}
  const promoFrom=r=>{const g=headerKey(r[promoCol['PROMO GRUPO']]),size=Number(r[promoCol['PROMO UNIDADES']]),amount=parseUSD(r[promoCol['PROMO PRECIO PACK']]);if(!g||!Number.isInteger(size)||size<2||size>99||!(amount>0))return null;return{group:g,size,amount,text:String(r[promoCol['PROMO TEXTO']]??'').trim().slice(0,120),mix:(promoGroups.get(g)||0)>1};};
  for(const p of result.products){
   const row=index.get(artKey(p.art));
-  // Articles listed only by size (e.g. 493 S, 493 M…): promo, crossed price and gift come from the first size row that has them.
-  const sizes=row?null:children.get(artKey(p.art)),pick=i=>row||(i>=0&&sizes?.find(r=>String(r[i]??'').trim()))||sizes?.[0];
-  if(hasPromo){const r=pick(promoCol['PROMO GRUPO']);p.promo=r?promoFrom(r):null;}
-  // BH = crossed-out "was" price (PRICE stays the price charged); BI = free-gift text. Missing column = old rules (undefined).
-  if(promoCol['PRECIO ANTES']>=0){const r=pick(promoCol['PRECIO ANTES']),was=r?parseUSD(r[promoCol['PRECIO ANTES']]):null;p.wasPrice=was>0?was:null;}
-  // BJ = ART numbers of the gift options (e.g. "1024 2347"); the crew chooses one in the list.
-  if(promoCol['REGALO ARTS']>=0)p.giftArts=pick(promoCol['REGALO ARTS'])?String(pick(promoCol['REGALO ARTS'])[promoCol['REGALO ARTS']]??'').split(/[^0-9A-Za-z]+/).filter(a=>/^(?:[0-9]{1,5}|[A-Za-z]{1,4}[0-9]{1,6})$/.test(a)).slice(0,4):[];
-  if(promoCol['REGALO']>=0)p.gift=pick(promoCol['REGALO'])?String(pick(promoCol['REGALO'])[promoCol['REGALO']]??'').trim().slice(0,160)||null:null;
+  // Articles listed only by size (e.g. 493 S, 493 M…): the promo comes from the first size row that has one.
+  if(hasPromo){const sizes=row?null:children.get(artKey(p.art)),r=row||sizes?.find(x=>String(x[promoCol['PROMO GRUPO']]??'').trim())||sizes?.[0];p.promo=r?promoFrom(r):null;}
   if(p.category==='SIM cards')p.stock={quantity:null,status:'unlimited',variants:[],checkedAt};
   else p.stock=stockFromRows(rows,p.art,{checkedAt,byRequest:p.byRequest,previousStock:p.stock});
   if(!row){const allSizes=children.get(artKey(p.art));if(allSizes?.length){const group=allSizes.filter(listedRow);p.visible=group.length>0;p.outlet=group.some(row=>headerKey(row[col('OUTLET')])==='SI');if(group.length){if(!p.page)p.category=sourceCategory(group[0]);for(const [field,header] of [['family','FAMILIA'],['subfamily','SUBFAMILIA']])if(col(header)>=0)p[field]=String(group[0][col(header)]??'').trim().slice(0,200);}}if(!p.page&&pdfPages[artKey(p.art)])p.page=pdfPages[artKey(p.art)];continue;}
