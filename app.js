@@ -157,7 +157,8 @@ function renderSectionJump(list,on){const nav=$('#sec-jump');if(!nav)return;cons
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const f=b.dataset.jump,list=filtered(),i=list.findIndex(p=>sectionOrder?.get(normalizeArt(p.art))?.fam===f);if(i<0)return;if(i>=visible){visible=i+18;renderProducts();}document.getElementById('sec-'+secSlug(f))?.scrollIntoView({behavior:'smooth',block:'start'});});
 function renderProducts(){
  renderDiscovery();renderOutletIntro();renderSimIntro();
- const discoveryHome=!$('#catalog-discovery').hidden&&!($('#sort').value==='section'&&sectionOrder);
+ if($('#sort').value==='section'&&sectionOrder)$('#catalog-discovery').hidden=true;   // «By section»: the whole catalog right away, like the PDF
+ const discoveryHome=!$('#catalog-discovery').hidden;
  $('#product-grid').hidden=discoveryHome;$('.results-bar').hidden=discoveryHome;
  let list=filtered(),term=$('#search').value.trim();$('#clear-search').hidden=!term;
  $('#result-count').textContent=`${collection?({new:'New arrivals',bestsellers:'Bestsellers & shop picks',outlet:'Outlet picks'}[collection])+' · ':''}${list.length.toLocaleString('en-US')} ${productType?productType.toLowerCase():category==='All products'?'products':category.toLowerCase()}${term?' found':''}`;
