@@ -2,16 +2,22 @@ import {applyArticleRows,artKey,headerKey,parseUSD,stockFromRows} from './catalo
 export const SAFE_HEADERS=['S','ARTICULO','PRICE','DISPONIBLE','EN CATALOGO PDF','OUTLET','REPOSICIÓN','CATÁLOGO','TALLAS (padre / talla)','WEB DESCRIPCION FINAL','WEB ESTADO CATÁLOGO','FAMILIA','SUBFAMILIA','WEB NOMBRE','WEB VISIBLE',...[1,2,3,4,5,6].map(n=>'WEB FOTO '+n)];
 // ARTICULOS BD:BJ. Matched by the start of the header, so the notes in brackets can change.
 export const PROMO_HEADERS=['PROMO GRUPO','PROMO UNIDADES','PROMO PRECIO PACK','PROMO TEXTO','PRECIO ANTES','REGALO ARTS','REGALO'];
+// Madico 02/11: CATALOGO PUBLICO › «LLEGA (…)» = expected arrival of an item bought and EN CAMINO (PEDIDOS PROVEEDOR).
+// dd/mm/yyyy or yyyy-mm-dd. With a date from today on and no stock, the item is listed and orderable («Arriving ~dd/mm»). No column = old behaviour.
+export const ARRIVAL_HEADER='LLEGA';
 export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}}={}){
  if(!Array.isArray(rows)||rows.length<2||rows.length>10000)throw Error('Invalid article rows');
  const headers=rows[0].map(headerKey),allowed=new Set(SAFE_HEADERS.map(headerKey));
- if(headers.some(h=>!allowed.has(h)&&!PROMO_HEADERS.some(x=>h.startsWith(x)))||new Set(headers).size!==headers.length)throw Error('Only customer-facing columns are accepted');
+ if(headers.some(h=>!allowed.has(h)&&!PROMO_HEADERS.some(x=>h.startsWith(x))&&!h.startsWith(ARRIVAL_HEADER))||new Set(headers).size!==headers.length)throw Error('Only customer-facing columns are accepted');
  for(const name of ['S','ARTICULO','PRICE','DISPONIBLE','WEB DESCRIPCION FINAL'])if(!headers.includes(headerKey(name)))throw Error('Missing '+name);
  if(rows.some(r=>!Array.isArray(r)||r.length>headers.length||r.some(c=>typeof c==='object'||String(c??'').length>12000)))throw Error('Invalid article cell');
  const col=name=>headers.indexOf(headerKey(name)),index=new Map();for(const row of rows.slice(1)){const key=artKey(row[col('S')]);if(key&&!index.has(key))index.set(key,row);}
  if(index.size<Math.min(500,current.length*.6))throw Error('Source appears incomplete; previous catalog retained');
+ const arrCol=headers.findIndex(h=>h.startsWith(ARRIVAL_HEADER));
+ const madrid=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(checkedAt)),arrivalToday=['year','month','day'].map(t=>madrid.find(x=>x.type===t).value).join('-');
+ const arrivalOf=row=>{if(arrCol<0||!row)return null;const v=String(row[arrCol]??'').trim();let m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/),y,mo,d;if(m)[,d,mo,y]=m;else if((m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)))[,y,mo,d]=m;else return null;const iso=y+'-'+mo.padStart(2,'0')+'-'+d.padStart(2,'0'),t=new Date(iso+'T12:00Z');return !isNaN(t)&&t.toISOString().slice(0,10)===iso&&iso>=arrivalToday?iso:null;};
  const originals=current.map(p=>structuredClone(p)),existing=new Set(originals.map(p=>artKey(p.art))),added=[];
- const listedRow=row=>{const state=headerKey(row[col('WEB ESTADO CATÁLOGO')]);if(state==='REGALO'||/^AL0/i.test(String(row[col('S')]??'')))return false;if(col('DISPONIBLE')>=0&&Number(String(row[col('DISPONIBLE')]??'').replace(',','.'))>0)return true;return state==='EN CATALOGO'||(!state&&(headerKey(row[col('EN CATALOGO PDF')])==='SI'||headerKey(row[col('OUTLET')])==='SI'));};
+ const listedRow=row=>{const state=headerKey(row[col('WEB ESTADO CATÁLOGO')]);if(state==='REGALO'||/^AL0/i.test(String(row[col('S')]??'')))return false;if(arrivalOf(row))return true;if(col('DISPONIBLE')>=0&&Number(String(row[col('DISPONIBLE')]??'').replace(',','.'))>0)return true;return state==='EN CATALOGO'||(!state&&(headerKey(row[col('EN CATALOGO PDF')])==='SI'||headerKey(row[col('OUTLET')])==='SI'));};
  const validReference=key=>/^(?:\d+[A-Z]?|[A-Z]{1,4}\d{1,6})(?:-[A-Z0-9]{1,4})?$/.test(key);   // also 5808B, 5808R-S (Madico 01/11: everything with stock is listed)
  const categoryVotes=new Map();
  const familyKey=row=>headerKey(row[col('FAMILIA')])+'|'+headerKey(row[col('SUBFAMILIA')]);
@@ -49,6 +55,7 @@ export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}
   if(promoCol['REGALO']>=0)p.gift=pick(promoCol['REGALO'])?String(pick(promoCol['REGALO'])[promoCol['REGALO']]??'').trim().slice(0,160)||null:null;
   if(p.category==='SIM cards')p.stock={quantity:null,status:'unlimited',variants:[],checkedAt};
   else p.stock=stockFromRows(rows,p.art,{checkedAt,byRequest:p.byRequest,previousStock:p.stock});
+  if(arrCol>=0){const r=row||children.get(artKey(p.art))?.find(x=>arrivalOf(x)),day=arrivalOf(r),has=(p.stock?.quantity>0)||(p.stock?.variants||[]).some(v=>v.quantity>0);p.arrives=day&&!has&&p.category!=='SIM cards'?day:null;}
   if(!row){const allSizes=children.get(artKey(p.art));if(allSizes?.length){const group=allSizes.filter(listedRow);p.visible=group.length>0;p.outlet=group.some(row=>headerKey(row[col('OUTLET')])==='SI');if(group.length){if(!p.page)p.category=sourceCategory(group[0]);for(const [field,header] of [['family','FAMILIA'],['subfamily','SUBFAMILIA']])if(col(header)>=0)p[field]=String(group[0][col(header)]??'').trim().slice(0,200);}}if(!p.page&&pdfPages[artKey(p.art)])p.page=pdfPages[artKey(p.art)];continue;}
   if(p.category==='Everyday gear')p.category=sourceCategory(row);
   if(!p.page&&pdfPages[artKey(p.art)])p.page=pdfPages[artKey(p.art)];
@@ -68,7 +75,7 @@ export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}
   // Madico 01/11, fixed rule: whatever has stock is sold, so it is always in the catalog (web and PDF), even if retired, until it sells out.
   // Only gifts (WEB ESTADO CATÁLOGO = REGALO) and alcohol (AL01–AL08, shop only) stay out.
   const inStock=(p.stock?.quantity>0)||(p.stock?.variants||[]).some(v=>v.quantity>0);
-  if(webState==='REGALO'||/^AL0/i.test(String(p.art)))p.visible=false;else if(inStock)p.visible=true;
+  if(webState==='REGALO'||/^AL0/i.test(String(p.art)))p.visible=false;else if(inStock||p.arrives)p.visible=true;
   const outlet=headerKey(row[col('OUTLET')]);if(outlet==='SI')p.outlet=true;else if(outlet==='NO'){if(p.outlet)delete p.offer;p.outlet=false;}
   // After a dated offer ends, a newly checked PRICE is the current confirmed source price.
   const dateParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(checkedAt));const localDate=['year','month','day'].map(type=>dateParts.find(p=>p.type===type).value).join('-');

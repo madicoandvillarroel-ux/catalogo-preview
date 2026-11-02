@@ -298,3 +298,8 @@ body.sec-mode .catalog-layout{grid-template-columns:minmax(0,1fr)}
 .open-order summary::-webkit-details-marker{display:none}
 .oo-caret{font-size:14px;color:#062b4c;transition:transform .2s}.open-order details[open] .oo-caret{transform:rotate(180deg)}
 .open-order.folded{padding:4px 12px}
+/* Madico 02/11: bought and on its way, can be ordered */
+.card-arriving{font-size:10px;font-weight:700;color:#397d9c;margin:6px 0 0}
+
+/* Promo hint under the «added» toast (Madico 02/11: like the shop till) */
+.toast{white-space:pre-line;text-align:center;line-height:1.45}

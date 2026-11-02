@@ -271,6 +271,9 @@ def cell(c, p, x, ytop):
     if p.get('outlet'): badge(c, x + pad + 2, ytop - pad - 13, 'OUTLET', RED)
     elif p.get('bundle'): badge(c, x + pad + 2, ytop - pad - 13, p['bundle'], GREEN)
     elif p.get('gift'): badge(c, x + pad + 2, ytop - pad - 13, 'FREE GIFT', ORANGE)
+    if p.get('arrives'):   # Madico 02/11: bought and on its way, can be ordered (top right, the other labels stay top left)
+        a = str(p['arrives']); t = 'ARRIVING ~' + a[8:10] + '/' + a[5:7]; c.setFont('SansCB', 6.6)
+        badge(c, x + CW - pad - 2 - (c.stringWidth(t, 'SansCB', 6.6) + 10), ytop - pad - 13, t, NAVY)
     y = ytop - pad - ph - 10
     c.setFillColorRGB(*NAVY)
     for line in wrap2(c, short(p['name'], p.get('_strip', '')), 'SansCB', 7.6, w):

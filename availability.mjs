@@ -1,6 +1,10 @@
 // Stock and policy are independent from the port-call delivery check.
+// Madico 02/11: bought and on its way (CATALOGO PUBLICO › LLEGA) = listed and orderable before it arrives.
+export function arrivingDay(p,now=Date.now()){const d=p?.arrives;return typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&d>=arrivalMadridDay(now)?d:null;}
+export function arrivingText(day){return day?'Arriving ~'+day.slice(8,10)+'/'+day.slice(5,7)+' · order now':'';}
 export function stockHidden(p,stock=p?.stock){
  if(stock?.status==='unlimited')return false;
+ if(arrivingDay(p))return false;
  // E-026: a confirmed fast source outranks the legacy AP “No reponer”.
  // Explicit removal (visible=false), store-only and outlet keep their own rules.
  if(!p?.outlet&&stock?.replenishment==='RÁPIDA')return false;
@@ -17,6 +21,7 @@ export function availability(p,requested=1){
  if(stock?.status==='unlimited')return{status:'available',quantity:null,unlimited:true,sameDay:false};
  const quantity=typeof stock?.quantity==='number'?Math.max(0,stock.quantity):null;
  if(quantity>=requested)return{status:'available',quantity,sameDay:false};
+ const arrives=arrivingDay(p);if(arrives)return{status:'on_request',quantity,sameDay:false,arrives};
  if(!p?.outlet&&(policy==='RÁPIDA'||stock?.status==='on_request'||stock?.policy==='SOLO BAJO PEDIDO'||stock?.policy==='HABITUAL'||stock?.status==='available_no_quantity'))return{status:'on_request',quantity,sameDay:false};
  return{status:'out_of_stock',quantity,sameDay:false};
 }
@@ -51,6 +56,7 @@ export function callEligibility(p,label,requested,fields={},now=Date.now()){
  if(availability({...p,stock},requested).status!=='on_request')return{ok:true,text:'In stock · Delivery time subject to confirmation'};
  const quote=p.deliveryQuotes?.find(q=>q.port===fields.port&&q.eta===fields.eta&&q.fullChainConfirmed===true&&q.maxQuantity>=requested&&Date.parse(q.expiresAt)>now&&Date.parse(q.arrivesBy)<=eta);
  if(quote)return{ok:true,text:'On request · Delivery checked for this call',deliveryConfirmed:true};
+ const arrives=arrivingDay(p,now);if(arrives)return{ok:true,text:arrivingText(arrives)+(fields.eta.slice(0,10)<arrives?' · may not reach your call':''),deliveryConfirmed:false};
  if(fields.eta.slice(0,10)===arrivalMadridDay(now))return{ok:false,text:'No stock for today · Ask us about delivery'};
  return{ok:true,text:'On request · Availability and delivery to confirm',deliveryConfirmed:false};
 }
