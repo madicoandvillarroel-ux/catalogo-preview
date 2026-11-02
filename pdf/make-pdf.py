@@ -91,6 +91,7 @@ def link(target, rect):
     else: c.linkRect('', target, rect, relative=0)
 
 # ---- your usual first pages (original images), full page, with tappable areas
+STRIPS = {'insert-60.jpg': os.path.join(here, 'art', 'special.jpg')}   # banner drawn under a poster
 def poster(path, areas, buttons):
     full = os.path.join(site, path)
     if not os.path.exists(full): return False
@@ -98,7 +99,10 @@ def poster(path, areas, buttons):
     if ir is None:
         im = Image.open(full).convert('RGB'); b = io.BytesIO(); im.thumbnail((1240, 1240)); im.save(b, 'JPEG', quality=72, optimize=True); b.seek(0); ir = ImageReader(b)
     iw, ih = ir.getSize(); bh = 46 if buttons else 0
-    s = min(W / iw, (H - bh) / ih); dw, dh = iw * s, ih * s; x0 = (W - dw) / 2; y0 = bh + (H - bh - dh) / 2
+    strip = STRIPS.get(os.path.basename(path)); sh = 0
+    if strip and os.path.exists(strip):   # a banner under the poster (e.g. «Special orders» under «Buy online»)
+        sw_, sh_ = ImageReader(strip).getSize(); sh = (W - 2 * M) * sh_ / sw_; c.drawImage(strip, M, bh + 4, W - 2 * M, sh); sh += 8
+    s = min(W / iw, (H - bh - sh) / ih); dw, dh = iw * s, ih * s; x0 = (W - dw) / 2; y0 = bh + sh + (H - bh - sh - dh) / 2
     c.drawImage(ir, x0, y0, dw, dh)
     for (fx0, fy0, fx1, fy1), target in areas:   # fractions of the image, from the top-left
         link(target, (x0 + fx0 * dw, y0 + (1 - fy1) * dh, x0 + fx1 * dw, y0 + (1 - fy0) * dh))
@@ -126,6 +130,8 @@ FRONT = [(os.path.join(FA, 'front-1.jpg'), cover_areas, [('Open the online catal
          (os.path.join(FA, 'front-3.jpg'), [((0, 0, 1, 1), URL)], [('How to order ▸', 'index'), ('Open the online catalog ▸', URL)]),
          (os.path.join(FA, 'front-4.jpg'), [((0, 0, 1, 1), WA)], [('Special order? WhatsApp us ▸', WA), ('Online catalog ▸', URL)]),
          (os.path.join(FA, 'front-5.jpg'), [((0, 0, 1, 1), URL)], [('Order SIM cards online ▸', URL), ('Questions? WhatsApp ▸', WA)])]
+FRONT.append((os.path.join(FA, 'insert-60.jpg'), [((0, 0, 1, 1), WA)], [('Send us your link on WhatsApp ▸', WA), ('Online catalog ▸', URL)]))   # «Buy online with The Seaman's Shop» (Zalando, JD…), after SIM (Madico 01/11)
+FRONT += [(os.path.join(FA, n), [((0, 0, 1, 1), WA)], [('Special order? WhatsApp us ▸', WA), ('Online catalog ▸', URL)]) for n in ('special-orders.jpg', 'special-orders.png') if os.path.exists(os.path.join(FA, n))][:1]   # ChatGPT special-orders page, after SIM
 FRONT = [f for f in FRONT if os.path.exists(f[0])]
 pn = 1
 for i, (path, areas, btns) in enumerate(FRONT):

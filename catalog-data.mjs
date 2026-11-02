@@ -70,7 +70,8 @@ function rowIndex(rows,id,sizes,webState){
  const parents=new Map(),childrenOf=new Map();
  for(const r of rows.slice(1)){
   const key=artKey(r[id]);if(!parents.has(key))parents.set(key,r);
-  if(webState>=0&&headerKey(r[webState])==='ELIMINADO')continue;
+  // Madico 01/11: a removed size that still has stock is still sold.
+  if(webState>=0&&headerKey(r[webState])==='ELIMINADO'&&!(Number(String(r[rows[0].map(headerKey).indexOf('DISPONIBLE')]??'').replace(',','.'))>0))continue;
   const code=String(r[id]??'').trim(),parts=code.match(/^(\S+)\s+(.+)$/);const linked=sizes>=0?String(r[sizes]??'').match(/^TALLA DE\s+(.+)$/i):null;
   const owner=linked?artKey(linked[1]):parts?artKey(parts[1]):null;if(owner===null)continue;
   if(!childrenOf.has(owner))childrenOf.set(owner,[]);childrenOf.get(owner).push(r);

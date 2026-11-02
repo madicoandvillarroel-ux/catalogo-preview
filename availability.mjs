@@ -4,17 +4,20 @@ export function stockHidden(p,stock=p?.stock){
  // E-026: a confirmed fast source outranks the legacy AP “No reponer”.
  // Explicit removal (visible=false), store-only and outlet keep their own rules.
  if(!p?.outlet&&stock?.replenishment==='RÁPIDA')return false;
+ // Madico 01/11: what AP says can be ordered (Solo bajo pedido / Habitual) is never hidden, whatever the old status file says.
+ if(!p?.outlet&&['SOLO BAJO PEDIDO','HABITUAL'].includes(stock?.policy))return false;
  return (p?.outlet||(stock?.replenishment?stock.replenishment==='NO SE REPONE':stock?.policy==='NO REPONER'))&&typeof stock?.quantity==='number'&&stock.quantity<=0;
 }
 // Keep known exhausted sizes visible, disabled by orderableLine.
 export function availableVariants(p){return p?.stock?.variants||[];}
 export function unavailableByStock(p){const variants=p?.stock?.variants||[];return !!p?.storeOnly||(variants.length?variants.every(v=>stockHidden(p,v)):stockHidden(p));}
+// Madico 01/11: «Habitual» at stock 0 is on request, never sold out.
 export function availability(p,requested=1){
  const stock=p?.stock,policy=stock?.replenishment||'PENDIENTE';
  if(stock?.status==='unlimited')return{status:'available',quantity:null,unlimited:true,sameDay:false};
  const quantity=typeof stock?.quantity==='number'?Math.max(0,stock.quantity):null;
  if(quantity>=requested)return{status:'available',quantity,sameDay:false};
- if(!p?.outlet&&(policy==='RÁPIDA'||stock?.status==='on_request'||stock?.policy==='SOLO BAJO PEDIDO'))return{status:'on_request',quantity,sameDay:false};
+ if(!p?.outlet&&(policy==='RÁPIDA'||stock?.status==='on_request'||stock?.policy==='SOLO BAJO PEDIDO'||stock?.policy==='HABITUAL'||stock?.status==='available_no_quantity'))return{status:'on_request',quantity,sameDay:false};
  return{status:'out_of_stock',quantity,sameDay:false};
 }
 export function orderableLine(p,label='',requested=1){

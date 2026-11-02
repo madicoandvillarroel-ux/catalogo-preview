@@ -51,7 +51,7 @@ SOUV_ORDER = ["MAGNETS", "KEYCHAINS", "CAPS", "T-SHIRTS", "MUGS", "FANS", "METAL
 # Madico 01/11: inside SOUVENIRS, one block per type taken from the name (all T-shirts together, all metal cases together…),
 # whatever SUBFAMILIA says. Names without a known type («SOUVENIR …») keep their group.
 SOUV_TYPE = [('T-SHIRT', 'T-SHIRTS'), ('METAL CASE', 'METAL CASES'), ('PHOTO FRAME', 'PHOTO FRAMES'), ('MAGNET', 'MAGNETS'), ('KEYCHAIN', 'KEYCHAINS'),
-             ('CAP', 'CAPS'), ('MUG', 'MUGS'), ('FAN', 'FANS'), ('ROSARY', 'ROSARIES'), ('SOCKS', 'SOCKS')]
+             ('CAP', 'CAPS'), ('MUG', 'MUGS'), ('HAND FAN', 'FANS'), ('FAN', 'FANS'), ('ROSARY', 'ROSARIES'), ('SOCKS', 'SOCKS')]
 if "SOUVENIRS" in fams:
     regroup = {}
     for sub, items in fams["SOUVENIRS"].items():
@@ -278,6 +278,8 @@ def cell(c, p, x, ytop):
     b = brand(p)
     if b: c.setFillColorRGB(0, 0, 0); c.setFont('SansB', 7.4); c.drawString(x + pad + 2, ytop - CH + 33, fit(c, b, 'SansB', 7.4, w * 0.62)[0])
     c.setFillColorRGB(*MUTED); c.setFont('Sans', 6.5); c.drawString(x + pad + 2, ytop - CH + 24, 'ART. ' + str(p['art']))
+    if p.get('left'):   # OUTLET: what is left (Madico 01/11)
+        c.setFillColorRGB(*RED); lt, ls = fit(c, p['left'], 'SansB', 6.6, w * 0.68); c.setFont('SansB', ls); c.drawRightString(x + CW - pad - 2, ytop - CH + 24, lt)
     c.setFillColorRGB(*NAVY); c.setFont('SansB', 13); pr = money(p['price']) if isinstance(p.get('price'), (int, float)) else 'Ask price'
     c.drawRightString(x + CW - pad - 2, ytop - CH + 12, pr)
     if p.get('compareAt') and isinstance(p.get('price'), (int, float)) and p['compareAt'] > p['price']:
@@ -286,7 +288,8 @@ def cell(c, p, x, ytop):
         c.setStrokeColorRGB(*RED); c.setLineWidth(0.8); c.line(xw - 1, ytop - CH + 15, xw + ww + 1, ytop - CH + 15)
 
 # grid pages
-LEAD = 5  # cover + 4 posters of the current PDF (cover, index image, how to order, special orders, SIM)
+ART_PAGE = lambda n: next((p for p in (os.path.join(ART, n + '.jpg'), os.path.join(ART, n + '.png')) if os.path.exists(p)), None)   # Madico 01/11: design pages are always the ChatGPT images
+LEAD = 5 + (1 if os.path.exists(os.path.join(ART, 'insert-60.jpg')) else 0) + (1 if ART_PAGE('special-orders') else 0)  # cover + 4 posters of the current PDF (cover, index image, how to order, special orders, SIM)
 grid = io.BytesIO(); c = canvas.Canvas(grid, pagesize=A4); c.setTitle("The Seaman's Shop · catalog (boceto)")
 CAP = GY1 - GY0
 def subtitle(c, name, y, red=False):
@@ -295,6 +298,9 @@ def subtitle(c, name, y, red=False):
 # Madico 31/10: a red cover separates the OUTLET (the old one said «extra 25 % in October», which ends on 01/11)
 F6 = os.path.join(ART, 'front-6.jpg')
 def outlet_cover(c, pageno):
+    if ART_PAGE('outlet-cover'):   # the ChatGPT OUTLET page, full page
+        ir = ImageReader(ART_PAGE('outlet-cover')); iw, ih = ir.getSize(); s = min(W / iw, H / ih); dw, dh = iw * s, ih * s
+        c.drawImage(ir, (W - dw) / 2, (H - dh) / 2, dw, dh); c.linkURL('https://catalog.theseamanshop.com', (0, 0, W, H), relative=0); return
     c.setFillColorRGB(0.72, 0.04, 0.06); c.rect(0, 0, W, H, fill=1, stroke=0)
     c.drawImage(HDR_O, 10, H - 6 - hgt(HDR_O), BW, hgt(HDR_O))
     y = H - 6 - hgt(HDR_O) - 120
@@ -373,6 +379,30 @@ for i, bl in enumerate(blocks):
         if f not in first: first[f] = len(pages) + 1
     cur.append(bl); used += h
 if cur: pages.append(cur)
+# Madico 01/11: no «(cont.)» page with only 1–3 products. A page that closes a run (before the OUTLET cover or at the end)
+# and has fewer than 9 products shares the last two pages of the run evenly, so neither is left almost empty.
+def _n_items(pg): return sum(len([p for p in b[1] if not p.get('_card')]) for b in pg if b[0] == 'row')
+def _strip_cont(pg): return [b for b in pg if not (b[0] == 'sub' and b[1].endswith(' (cont.)'))]
+def _rebalance(pa, pb):
+    # Split by number of products (e.g. 16 → 8 + 8), not by height, so both pages look equally full.
+    bl = _strip_cont(pa) + _strip_cont(pb); cnt = lambda b: _n_items([b]); total = sum(cnt(b) for b in bl); a, used = [], 0
+    for i, b in enumerate(bl):
+        if a and used + cnt(b) / 2 > total / 2 and a[-1][0] == 'row': break   # never leave a title alone at the bottom
+        a.append(b); used += cnt(b)
+    rest = bl[len(a):]
+    if rest and rest[0][0] == 'row' and not rest[0][1][0].get('_card'): rest = [('sub', rest[0][1][0]['_strip'] + ' (cont.)', SUBH, rest[0][3])] + rest
+    if pa and pa[0][0] == 'sub' and pa[0][1].endswith(' (cont.)'): a = [pa[0]] + a
+    return a, rest
+for _i in range(1, len(pages)):
+    closes = _i == len(pages) - 1 or (any(b[3] == 'OUTLET' for b in pages[_i + 1]) and not any(b[3] == 'OUTLET' for b in pages[_i]))
+    if closes and _n_items(pages[_i]) < 9 and (any(b[3] == 'OUTLET' for b in pages[_i]) == any(b[3] == 'OUTLET' for b in pages[_i - 1])):
+        _a, _b = _rebalance(pages[_i - 1], pages[_i])
+        if _a and _b and sum(b[2] for b in _a) <= CAP and sum(b[2] for b in _b) <= CAP: pages[_i - 1], pages[_i] = _a, _b
+first = {}
+for _i, _pg in enumerate(pages):
+    for b in _pg:
+        for f in ([b[3]] if b[0] == 'sub' else [x.get('_fam') for x in b[1]]):
+            if f not in first: first[f] = _i + 1
 OI = next((i for i, pg in enumerate(pages) if any(b[3] == 'OUTLET' for b in pg)), None)   # first OUTLET page: the red cover goes before it
 def pno(n): return LEAD + 1 + n + (1 if OI is not None and n >= OI else 0)
 first = {k: (v + 1 if OI is not None and v > OI + 1 else v) + LEAD for k, v in first.items()}   # OUTLET links go to the cover
@@ -451,5 +481,8 @@ for i, n, idx in [(0, 3, 1), (1, 1, 0), (2, 2, 0)]:
     bw = (W - 2 * M - (n - 1) * 8) / n; bx = M + idx * (bw + 8)
     goto(outdoc[i], pymupdf.Rect(bx, H - 38, bx + bw, H - 14), 2)
 index = [(f, p, sum(len(v) for v in fams[f].values())) for f, p in first.items()]
+if ART_PAGE('thanks'):   # closing «Thank you» page (ChatGPT) at the very end
+    _pg = outdoc.new_page(width=W, height=H); _iw, _ih = Image.open(ART_PAGE('thanks')).size; _s = min(W / _iw, H / _ih)
+    _pg.insert_image(pymupdf.Rect((W - _iw * _s) / 2, (H - _ih * _s) / 2, (W + _iw * _s) / 2, (H + _ih * _s) / 2), filename=ART_PAGE('thanks'))
 outdoc.save(out, garbage=4, deflate=True)
 print(json.dumps({'pages': len(outdoc), 'mb': round(os.path.getsize(out) / 1e6, 1), 'grid_pages': pageno - LEAD - 1, 'index_links': links_done, 'not_outlet': NOT_OUTLET, 'outlet_cover': pno(OI) - 1 if OI is not None else None,'families': [(f, p) for f, p, n in index]}, ensure_ascii=False))

@@ -1,4 +1,5 @@
 // node pdf-data.mjs <site dir> <csv file|url> <out.json>
+// 01/11 22:00: rebuilt with ARTICULOS closed (OUTLET 207 products).
 // Compiles the live catalog exactly like the web does and writes the data the weekly PDF needs.
 import fs from 'node:fs';
 const [site,csvSrc,out]=process.argv.slice(2);
@@ -16,11 +17,15 @@ const order=["The Seaman's Shop",'SIM cards','Audio','Smartwatches','Electronics
 const TYPES=[['T-SHIRTS',/\bt-?shirts?\b|\btshirt|camiseta/i],['SWEATSHIRTS & HOODIES',/sweatshirt|hoodie|sudadera/i],['CAPS',/\bcaps?\b|\bcapvalencia|gorra/i],['MAGNETS',/magnet|\bim[aá]n\b/i],['MUGS',/\bmugs?\b|\btaza/i],['FANS',/\bfan\b|abanico/i],['KEYCHAINS',/key ?chain|kaychain|llavero|keyring/i],['ROSARIES',/rosary/i],['METAL CASES',/metal.*case/i],['PHOTO FRAMES',/photo frame/i],['SOCKS',/\bsocks?\b/i]];
 const typeOf=p=>{for(const [l,r] of TYPES)if(r.test(p.name))return l;return null;};
 const groupRank=g=>{const i=TYPES.findIndex(x=>x[0]===g);return i>=0?i:/^OTHER/i.test(g)?999:500;};
+// Madico 01/11: OUTLET cards say what is left (AA stock and sizes), e.g. «Only 1 left · size S».
+const leftText=p=>{const v=(p.stock?.variants||[]).filter(x=>typeof x.quantity==='number'&&x.quantity>0);if(v.length){const n=v.reduce((s,x)=>s+x.quantity,0);return (n===1?'Only 1 left':n+' left')+' · size '+v.map(x=>x.label+(v.length>1&&x.quantity>1?' ×'+x.quantity:'')).join(', ');}const q=p.stock?.quantity;return typeof q==='number'&&q>0?(q===1?'Only 1 left':q<=10?'Only '+q+' left':''):'';};
 const rows=[];
 for(const p of snap.products){
+ // Web simple (02/11): BH tachado and BI/BJ gift are read for the web only; the PDF keeps its previous rules until Madico says otherwise.
+ delete p.wasPrice;delete p.gift;delete p.giftArts;
  if(!isListed(p))continue;const a=availability(p);if(a.status==='out_of_stock')continue;
  const q=quote(p,'Valencia'),b=bundlePromotion(p);
- rows.push({art:p.art,name:p.name,category:p.outlet?'Outlet':/seaman/i.test(p.name+' '+(p.brand||''))?"The Seaman's Shop":p.category,subfamily:p.subfamily||'',group:(p.category==='Souvenirs'&&!p.outlet?typeOf(p):null)||(p.subfamily||'').toUpperCase(),price:q.price,compareAt:q.compareAt||null,image:p.image||(p.images||[])[0]||null,status:a.status,offer:q.active&&!p.outlet?(q.compareAt?'SPECIAL OFFER · BEFORE $'+q.compareAt:(q.label||'Special offer'))+(q.endsOn?' · until '+q.endsOn.split('-').reverse().join('/'):''):null,bundle:b?b.label:null,gift:giftPromotion(p)?'FREE GIFT: SONY HEADPHONES OR GRUNDIG CLOCK':null,outlet:!!p.outlet,sizes:(p.stock?.variants||[]).filter(v=>availability({stock:v}).status!=='out_of_stock').map(v=>v.label).slice(0,8)});
+ rows.push({art:p.art,name:p.name,category:p.outlet?'Outlet':/seaman/i.test(p.name+' '+(p.brand||''))?"The Seaman's Shop":p.category,subfamily:p.subfamily||'',group:(p.category==='Souvenirs'&&!p.outlet?typeOf(p):null)||(p.subfamily||'').toUpperCase(),price:q.price,compareAt:q.compareAt||null,image:p.image||(p.images||[])[0]||null,status:a.status,offer:q.active&&!p.outlet?(q.compareAt?'SPECIAL OFFER · BEFORE $'+q.compareAt:(q.label||'Special offer'))+(q.endsOn?' · until '+q.endsOn.split('-').reverse().join('/'):''):null,bundle:b?b.label:null,gift:giftPromotion(p)?'FREE GIFT: SONY HEADPHONES OR GRUNDIG CLOCK':null,outlet:!!p.outlet,left:p.outlet?leftText(p):'',sizes:(p.stock?.variants||[]).filter(v=>availability({stock:v}).status!=='out_of_stock').map(v=>v.label).slice(0,8)});
 }
 // Sections and order exactly like the printed catalog (pdf/catalog-structure.json: page titles + where each Art. was).
 const ST=JSON.parse(fs.readFileSync(site+'/pdf/catalog-structure.json','utf8'));

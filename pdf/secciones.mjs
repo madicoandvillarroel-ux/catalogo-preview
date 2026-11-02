@@ -17,5 +17,10 @@ const ALIAS=p=>{const n=String(p.name||'').toUpperCase(),tss=/SAMSONITE|AMERICAN
  return null;};
 let m=0;
 for(const p of d.products){if(p.outlet||OK.has(p.category))continue;const f=ALIAS(p);if(f&&OK.has(f)){p.category=f;m++;}}
+// Madico 01/11: one family for trainers. «PUMA SHOES» becomes «SHOES & TRAINERS» (it has Adidas, Skechers…), and every trainer goes there.
+const SHOE=d.products.find(p=>!p.outlet&&p.category==='PUMA SHOES');
+for(const p of d.products){if(p.outlet){if(p.outletGroup)p.outletGroup=String(p.outletGroup).replace('PUMA SHOES','SHOES & TRAINERS');continue;}
+ if(p.category==='PUMA SHOES')p.category='SHOES & TRAINERS';
+ else if(SHOE&&String(p.subfamily||p.group||'').toUpperCase()==='SHOES & TRAINERS'){p.category='SHOES & TRAINERS';for(const k of ['secpage','ord'])if(SHOE[k]!==undefined)p[k]=SHOE[k];}}
 fs.writeFileSync(file,JSON.stringify(d));
 console.log('secciones aprobadas',n,'familia unificada',m);

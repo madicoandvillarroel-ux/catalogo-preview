@@ -17,23 +17,23 @@ export async function fetchStatus(url,order){
  if(!r.ok)throw Error('Status unavailable');const j=await r.json();if(!j.ok||!Array.isArray(j.lines))throw Error('Status unavailable');return j;
 }
 export const STATUS_TEXT={
- 'CHECK':['Checking ⏳','info'],
- 'NO STOCK CHECK':['Checking ⏳','info'],
- 'ALEX':['Checking ⏳','info'],
+ 'CHECK':['Checking','info'],
+ 'NO STOCK CHECK':['Checking','info'],
+ 'ALEX':['Checking','info'],
  'PREPARED':['Ready ✓','ok'],
- 'ORDER ON THE WAY':['On the way 🚚','pending'],
- 'SPECIAL ORDER':['On the way 🚚','pending'],
- 'REPLACEMENT':['On the way 🚚','pending'],
+ 'ORDER ON THE WAY':['On the way','pending'],
+ 'SPECIAL ORDER':['On the way','pending'],
+ 'REPLACEMENT':['On the way','pending'],
  'DELIVERED':['Delivered ✓','ok'],
- 'NO STOCK':['Not available ✗','bad'],
+ 'NO STOCK':['Not available','bad'],
  'CANCEL':['Cancelled','bad']
 };
-export function statusText(s){return STATUS_TEXT[String(s||'').trim().toUpperCase()]||['Checking ⏳','info'];}
+export function statusText(s){return STATUS_TEXT[String(s||'').trim().toUpperCase()]||['Checking','info'];}
 export async function cancelLine(url,order,art,reason,desc){
  const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'cancel',id:order.id,t:order.t,art,reason,desc}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),20000);
  if(!r.ok)throw Error('Unavailable');const j=await r.json();if(!j.ok)throw Error('Not cancelled');return j.result;
 }
-export const STATUS_HELP='<p class="status-help"><b>Ready ✓</b> Packed and ready for delivery on board.<br><b>On the way 🚚</b> Ordered from our supplier. It should arrive before your vessel; we will tell you if anything changes.<br><b>Checking ⏳</b> We are still checking stock.<br><b>Not available ✗</b> We cannot supply it for this call. Please choose something else.<br><b>Special orders</b> We look for it and send you a price. Once you accept the price and we order it, it cannot be cancelled.<br><b>Want to cancel?</b> Tap Cancel and tell us why; the shop confirms it (some items are ordered specially for you). <b>Add more</b> any time: add products to your list and tap Send order; they join your vessel\'s order.</p>';
+export const STATUS_HELP='<p class="status-help"><b>Received</b> We have your order and are checking stock.<br><b>Prepared ✓</b> Packed and ready for delivery on board.<br><b>On the way 🚚</b> Ordered from our supplier. It should arrive before your vessel; we will tell you if anything changes.<br><b>Delivered ✓</b> Handed over on board.<br>🎁 <b>Free gifts</b> show at $0 and travel with your order.<br><b>Not available ✗</b> We cannot supply it for this call. Please choose something else.<br><b>Special orders</b> We look for it and send you a price. Once you accept the price and we order it, it cannot be cancelled.<br><b>Want to cancel?</b> Tap Cancel and tell us why; the shop confirms it (some items are ordered specially for you). <b>Add more</b> any time: add products to your list and tap Send order; they join your vessel\'s order.</p>';
 export async function sendSpecial(url,payload){
  const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'special',...payload}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),25000);
  if(!r.ok)throw Error('Unavailable');const j=await r.json();if(!j.ok||!/^W-\d{4}-\d{6}-\d{2}$/.test(j.id))throw Error(j.error||'Not registered');return j;
@@ -48,5 +48,7 @@ const SKEY='tss-crew-session-v1';
 export function session(){try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');return s&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email)&&typeof s.te==='string'?s:null;}catch{return null;}}
 export function setSession(s){try{if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}catch{}}
 export function importLoginHash(){const m=location.hash.match(/#login=([\w=-]+)\.([\w-]{10,40})/);if(!m)return false;let email='';try{email=atob(m[1].replace(/-/g,'+').replace(/_/g,'/')).trim().toLowerCase();}catch{}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return false;setSession({email,te:m[2],since:new Date().toISOString()});history.replaceState(history.state,'',location.pathname+location.search);return true;}
-export async function requestLogin(url,email){const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'login',email}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),20000);if(!r.ok)throw Error('Unavailable');const j=await r.json();if(!j.ok)throw Error(j.error||'Not sent');return j;}
+export function siteUrl(){return location.origin+location.pathname.replace(/\/[^/]*$/,'');}
+export async function loginWithCode(url,email,code){const r=await withTimeout(fetch(url+'?email='+encodeURIComponent(email)+'&code='+encodeURIComponent(code),{credentials:'omit',redirect:'follow'}),20000);if(!r.ok)throw Error('Unavailable');const j=await r.json();if(!j.ok||typeof j.te!=='string')throw Error(j.error||'code');return j;}
+export async function requestLogin(url,email){const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'login',email,site:siteUrl()}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),20000);if(!r.ok)throw Error('Unavailable');const j=await r.json();if(!j.ok)throw Error(j.error||'Not sent');return j;}
 export async function fetchMine(url,s){const r=await withTimeout(fetch(url+'?email='+encodeURIComponent(s.email)+'&te='+encodeURIComponent(s.te),{credentials:'omit',redirect:'follow'}),20000);if(!r.ok)throw Error('Unavailable');const j=await r.json();if(!j.ok||!Array.isArray(j.orders))throw Error('Session expired');return j;}

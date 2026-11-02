@@ -12,6 +12,7 @@ export function quote(product,port='Valencia',now=new Date()){
   const datedActive=!!offer&&(!offer.startsOn||day>=offer.startsOn)&&(!offer.endsOn||day<=offer.endsOn);
   return{price:base,compareAt,active:datedActive||compareAt!==null,expired:false,...(datedActive&&offer.endsOn?{endsOn:offer.endsOn}:{}),label:'Outlet price'};
  }
+ if(!offer&&product.wasPrice!==undefined)return Number(product.wasPrice)>Number(base)?{price:base,compareAt:Number(product.wasPrice),active:true,expired:false,label:'Special offer'}:{price:base,compareAt:null,active:false,expired:false};
  const fixed=PROMO_PRICES[String(Number(product.art))];
  if(!offer&&fixed&&Number(base)===fixed.from)return{price:fixed.price,compareAt:fixed.from,active:true,expired:false,label:'Special offer'};
  if(!offer)return{price:base,compareAt:null,active:false,expired:false};
@@ -39,8 +40,9 @@ const PAIR_PROMOS=[
 ];
 // Fixed promo prices (shown as an offer with the old price crossed out).
 const PROMO_PRICES={'168':{from:7,price:6}};
-// Gift with a speaker or a laptop over $300 (while stocks last).
+// Free gift: ARTICULOS BI REGALO. The speaker/laptop rule below is only the transition while that column is missing.
 export function giftPromotion(p){
+ if(p&&p.gift!==undefined)return p.gift&&!p.outlet?{label:p.gift}:null;
  if(!p||p.outlet||!(Number(p.price)>300))return null;
  const sub=String(p.subfamily||'').toUpperCase(),name=String(p.name||'').toUpperCase();
  const speaker=p.category==='Audio'&&(sub==='SPEAKERS'||/PARTYBOX|SPEAKER/.test(name)),laptop=sub==='LAPTOPS'||/LAPTOP/.test(name);
@@ -50,7 +52,7 @@ export function bundlePromotion(p){
  if(!p||p.outlet)return null;
  const art=String(Number(p.art)),price=Number(p.price);
  // Source of truth: ARTICULOS BD:BG (PROMO GRUPO / UNIDADES / PRECIO PACK / TEXTO). Without those columns: the fixed rules below.
- if(p.promo!==undefined){const x=p.promo;if(!x||!(x.size*price>x.amount))return null;const deal=`${x.size} for $${x.amount}`;return{id:'promo-'+x.group+(x.mix?'':'-'+art),same:!x.mix,size:x.size,amount:x.amount,label:x.text||deal,headline:`1 for $${price} · ${deal}`};}
+ if(p.promo!==undefined){const x=p.promo;if(!x||!(x.size*price>x.amount))return null;const deal=`${x.size} for $${x.amount}`;return{id:'promo-'+x.group+(x.mix?'':'-'+art),same:!x.mix,size:x.size,amount:x.amount,deal,label:x.text||deal,headline:`1 for $${price} · ${deal}`};}
  if(p.category==='Souvenirs'&&price===3&&/\bmagnet\b|\bim[aá]n\b/i.test(p.name||''))return{id:'magnets',size:4,amount:10,label:'4 magnets for $10'};
  if(['8336','4633','6239','5633','4593','4602','4681','5634','5604','4640','4597','4594','4589','4631'].includes(art)&&price>=25)return{id:'caps',size:2,amount:50,label:'2 New Era caps for $50'};
  if(['3067','2010'].includes(art)&&price===3)return{id:'noodles',size:2,amount:5,label:'2 noodles for $5'};
@@ -60,7 +62,7 @@ export function bundlePromotion(p){
  return null;
 }
 export function priceBasket(lines,getProduct,port='Valencia',now=new Date()){
- const groups=new Map(),rows=lines.map((line,index)=>{const p=getProduct(line),price=p?quote(p,port,now).price:null,valid=Number.isFinite(price)&&price>0&&Number.isInteger(line.qty)&&line.qty>0;const row={id:line.id,index,qty:line.qty,subtotal:valid?Math.round(price*100)*line.qty:null,total:valid?Math.round(price*100)*line.qty:null,discount:0,promotion:null};const offer=valid?bundlePromotion(p):null;if(offer){if(!groups.has(offer.id))groups.set(offer.id,{offer,rows:[]});groups.get(offer.id).rows.push({...row,unit:Math.round(price*100)});}return row;});
+ const groups=new Map(),rows=lines.map((line,index)=>{const p=getProduct(line),price=p?quote(p,port,now).price:null,valid=Number.isFinite(price)&&price>0&&Number.isInteger(line.qty)&&line.qty>0;const row={id:line.id,index,qty:line.qty,subtotal:valid?Math.round(price*100)*line.qty:null,total:valid?Math.round(price*100)*line.qty:null,discount:0,promotion:null};const offer=valid?bundlePromotion(p):null;if(offer){if(!groups.has(offer.id))groups.set(offer.id,{offer:{...offer,title:offer.same?String(p.name).slice(0,28).trim()+': '+offer.deal+' (same product)':offer.label},rows:[]});groups.get(offer.id).rows.push({...row,unit:Math.round(price*100)});}return row;});
  const promotions=[];
  for(const {offer,rows:group} of groups.values()){
   const quantity=group.reduce((n,r)=>n+r.qty,0),bundles=Math.floor(quantity/offer.size);let remaining=bundles*offer.size,discount=0,value=0,last=null;
@@ -71,7 +73,7 @@ export function priceBasket(lines,getProduct,port='Valencia',now=new Date()){
   }
   // Bundles cost exactly their price (6 for $10 is $10.00, not 6 × $1.67).
   const exact=Math.max(0,value-bundles*Math.round(offer.amount*100));if(last&&exact!==discount){last.discount+=exact-discount;last.total=last.subtotal-last.discount;discount=exact;}
-  promotions.push({id:offer.id,label:offer.label,bundles,quantity,needed:offer.size-quantity%offer.size,discount:discount/100});
+  promotions.push({id:offer.id,label:offer.label,deal:offer.deal,size:offer.size,bundles,quantity,needed:offer.size-quantity%offer.size,discount:discount/100});
  }
  return{rows:rows.map(r=>({...r,subtotal:r.subtotal===null?null:r.subtotal/100,total:r.total===null?null:r.total/100,discount:r.discount/100})),total:rows.reduce((n,r)=>n+(r.total||0),0)/100,discount:rows.reduce((n,r)=>n+r.discount,0)/100,promotions};
 }
