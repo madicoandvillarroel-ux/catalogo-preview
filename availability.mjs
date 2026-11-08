@@ -57,6 +57,6 @@ export function callEligibility(p,label,requested,fields={},now=Date.now()){
  const quote=p.deliveryQuotes?.find(q=>q.port===fields.port&&q.eta===fields.eta&&q.fullChainConfirmed===true&&q.maxQuantity>=requested&&Date.parse(q.expiresAt)>now&&Date.parse(q.arrivesBy)<=eta);
  if(quote)return{ok:true,text:'On request · Delivery checked for this call',deliveryConfirmed:true};
  const arrives=arrivingDay(p,now);if(arrives)return{ok:true,text:arrivingText(arrives)+(fields.eta.slice(0,10)<arrives?' · may not reach your call':''),deliveryConfirmed:false};
- if(fields.eta.slice(0,10)===arrivalMadridDay(now))return{ok:false,text:'No stock for today · Ask us about delivery'};
+ if(fields.eta.slice(0,10)===arrivalMadridDay(now))return{ok:true,text:'On request · Same-day delivery to confirm',deliveryConfirmed:false}; // Madico 08/11 (prueba 9): on-request items can always be asked for
  return{ok:true,text:'On request · Availability and delivery to confirm',deliveryConfirmed:false};
 }
