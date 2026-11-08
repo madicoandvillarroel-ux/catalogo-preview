@@ -8,8 +8,11 @@ function store(list){try{localStorage.setItem(KEY,JSON.stringify(list.slice(0,20
 export function rememberOrder(order){const list=savedOrders().filter(o=>o.id!==order.id);list.unshift(order);store(list);}
 export function updateOrder(id,patch){store(savedOrders().map(o=>o.id===id?{...o,...patch}:o));}
 async function withTimeout(promise,ms){let timer;try{return await Promise.race([promise,new Promise((_,r)=>{timer=setTimeout(()=>r(Error('timeout')),ms);})]);}finally{clearTimeout(timer);}}
+// Madico 08/11 (prueba 12): the sheet can take >25 s to write; wait up to 90 s. nonce = same order sent twice → the connector (v12) returns the first one instead of a duplicate.
+function nonce(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36)+s.length.toString(36);}
 export async function sendOrder(url,payload){
- const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'order',...payload}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),25000);
+ const core=JSON.stringify({action:'order',...payload});
+ const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'order',...payload,nonce:nonce(core)}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),90000);
  if(!r.ok)throw Error('Order connector unavailable');const j=await r.json();if(!j.ok||!/^W-\d{4}-\d{6}-\d{2}$/.test(j.id))throw Error(j.error||'Order not registered');return j;
 }
 export async function fetchStatus(url,order){
