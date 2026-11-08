@@ -21,6 +21,8 @@ export async function fetchStatus(url,order){
 }
 export const STATUS_TEXT={
  'CHECK':['Checking','info'],
+ 'RECEIVED':['Received','info'],
+ 'CANCELLED':['Cancelled','bad'],
  'NO STOCK CHECK':['Checking','info'],
  'ALEX':['Checking','info'],
  'PREPARED':['Ready ✓','ok'],
