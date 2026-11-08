@@ -12,7 +12,7 @@ async function withTimeout(promise,ms){let timer;try{return await Promise.race([
 function nonce(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36)+s.length.toString(36);}
 export async function sendOrder(url,payload){
  const core=JSON.stringify({action:'order',...payload});
- const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'order',...payload,nonce:nonce(core)}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),90000);
+ const r=await withTimeout(fetch(url,{method:'POST',body:JSON.stringify({action:'order',...payload,nonce:nonce(core)}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit'}),60000);
  if(!r.ok)throw Error('Order connector unavailable');const j=await r.json();if(!j.ok||!/^W-\d{4}-\d{6}-\d{2}$/.test(j.id))throw Error(j.error||'Order not registered');return j;
 }
 export async function fetchStatus(url,order){
