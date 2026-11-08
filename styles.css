@@ -303,3 +303,10 @@ body.sec-mode .catalog-layout{grid-template-columns:minmax(0,1fr)}
 
 /* Promo hint under the «added» toast (Madico 02/11: like the shop till) */
 .toast{white-space:pre-line;text-align:center;line-height:1.45}
+/* Madico 08/11 (prueba 26): low/folding screens — the welcome and login windows scroll, the main button always visible */
+#profile-dialog[open],#login-dialog[open]{display:flex;flex-direction:column;height:auto;max-height:calc(100vh - 12px);max-height:calc(100svh - 12px);max-height:calc(100dvh - 12px);overflow:hidden}
+#profile-dialog .dialog-head,#login-dialog .dialog-head{flex:none}
+#profile-dialog>:not(.dialog-head),#login-dialog>:not(.dialog-head){flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#profile-form{padding-bottom:0}
+#profile-save{position:sticky;bottom:0;z-index:2;margin-bottom:12px;box-shadow:0 12px 0 #fff,0 -12px 14px #fff}
+@media (max-height:520px){#profile-dialog .dialog-head,#login-dialog .dialog-head{padding:8px 16px}#profile-dialog .dialog-head h2,#login-dialog .dialog-head h2{font-size:18px;margin-top:2px}.simple-form{gap:7px}.simple-form input,.simple-form select{padding:8px 10px}}
