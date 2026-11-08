@@ -1,7 +1,7 @@
 'use strict';
 // Large posters (info sheets, cover) are not pre-cached: they load online only.
 // Static hosting build. Bump CACHE when the shell changes incompatibly.
-const CACHE='tss-catalog-v13';
+const CACHE='tss-catalog-v14';
 // Madico 08/11 (prueba 18): the offline copy («Save offline») lives in catalog-refresh.mjs CACHE_NAME = 'tss-catalog-v2'. Never delete it and always look there too
 // (bumping CACHE used to wipe it, so offline only showed what had been browsed).
 const OFFLINE='tss-catalog-v2';

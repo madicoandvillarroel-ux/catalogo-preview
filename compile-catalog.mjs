@@ -17,7 +17,7 @@ export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}
  const madrid=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(checkedAt)),arrivalToday=['year','month','day'].map(t=>madrid.find(x=>x.type===t).value).join('-');
  const arrivalOf=row=>{if(arrCol<0||!row)return null;const v=String(row[arrCol]??'').trim();let m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/),y,mo,d;if(m)[,d,mo,y]=m;else if((m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)))[,y,mo,d]=m;else return null;const iso=y+'-'+mo.padStart(2,'0')+'-'+d.padStart(2,'0'),t=new Date(iso+'T12:00Z');return !isNaN(t)&&t.toISOString().slice(0,10)===iso&&iso>=arrivalToday?iso:null;};
  const originals=current.map(p=>structuredClone(p)),existing=new Set(originals.map(p=>artKey(p.art))),added=[];
- const listedRow=row=>{const state=headerKey(row[col('WEB ESTADO CATÁLOGO')]);if(state==='REGALO'||/^AL0/i.test(String(row[col('S')]??'')))return false;if(arrivalOf(row))return true;if(col('DISPONIBLE')>=0&&Number(String(row[col('DISPONIBLE')]??'').replace(',','.'))>0)return true;return state==='EN CATALOGO'||(!state&&(headerKey(row[col('EN CATALOGO PDF')])==='SI'||headerKey(row[col('OUTLET')])==='SI'));};
+ const listedRow=row=>{const state=headerKey(row[col('WEB ESTADO CATÁLOGO')]);if(state==='REGALO'||/^ALd/i.test(String(row[col('S')]??'')))return false;if(arrivalOf(row))return true;if(col('DISPONIBLE')>=0&&Number(String(row[col('DISPONIBLE')]??'').replace(',','.'))>0)return true;return state==='EN CATALOGO'||(!state&&(headerKey(row[col('EN CATALOGO PDF')])==='SI'||headerKey(row[col('OUTLET')])==='SI'));};
  const validReference=key=>/^(?:\d+[A-Z]?|[A-Z]{1,4}\d{1,6})(?:-[A-Z0-9]{1,4})?$/.test(key);   // also 5808B, 5808R-S (Madico 01/11: everything with stock is listed)
  const categoryVotes=new Map();
  const familyKey=row=>headerKey(row[col('FAMILIA')])+'|'+headerKey(row[col('SUBFAMILIA')]);
@@ -75,7 +75,7 @@ export function compileCatalog(current,rows,checkedAt,{enrichment={},pdfPages={}
   // Madico 01/11, fixed rule: whatever has stock is sold, so it is always in the catalog (web and PDF), even if retired, until it sells out.
   // Only gifts (WEB ESTADO CATÁLOGO = REGALO) and alcohol (AL01–AL08, shop only) stay out.
   const inStock=(p.stock?.quantity>0)||(p.stock?.variants||[]).some(v=>v.quantity>0);
-  if(webState==='REGALO'||/^AL0/i.test(String(p.art)))p.visible=false;else if(inStock||p.arrives)p.visible=true;
+  if(webState==='REGALO'||/^ALd/i.test(String(p.art)))p.visible=false;else if(inStock||p.arrives)p.visible=true;
   const outlet=headerKey(row[col('OUTLET')]);if(outlet==='SI')p.outlet=true;else if(outlet==='NO'){if(p.outlet)delete p.offer;p.outlet=false;}
   // After a dated offer ends, a newly checked PRICE is the current confirmed source price.
   const dateParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(checkedAt));const localDate=['year','month','day'].map(type=>dateParts.find(p=>p.type===type).value).join('-');
