@@ -142,14 +142,15 @@ async function downloadWithProgress(path,fetcher,expected,onProgress){
 export async function syncOfflineCopy({cache,snapshot,version,packBytes=0,packRevision='',fetcher=fetch,onProgress=()=>{}}){
  const staticFiles=await readJSON('offline-assets.json',fetcher,true);
  if(!Array.isArray(staticFiles)||staticFiles.some(f=>typeof f!=='string'||f.includes('..')||!OFFLINE_FILE.test(f)))throw Error('Invalid offline file list');
- for(const file of staticFiles){
-  if(file==='offline-assets.json')continue;
-  if(file!=='config.json'&&file!=='delivery-rules.json'&&await cache.match(file))continue;
-  await cache.put(file,await request(file,fetcher));
- }
- const buffer=await downloadWithProgress('offline-pack.bin?r='+encodeURIComponent(packRevision||Date.now()),fetcher,packBytes,onProgress);
+ // Madico 08/11 (prueba 18): app files in parallel; download = 0–85 %, saving the photos = 85–100 % (in batches, it was one by one).
+ await Promise.all(staticFiles.filter(f=>f!=='offline-assets.json').map(async file=>{if(file!=='config.json'&&file!=='delivery-rules.json'&&await cache.match(file))return;await cache.put(file,await request(file,fetcher));}));
+ let total=packBytes||1;
+ const buffer=await downloadWithProgress('offline-pack.bin?r='+encodeURIComponent(packRevision||Date.now()),fetcher,packBytes,({loaded,total:t})=>{total=t||total;onProgress({loaded:loaded*0.85,total});});
  const pack=unpack(buffer);
- for(const f of pack.files){const ext=f.path.split('.').pop().toLowerCase();await cache.put(f.path,new Response(f.bytes,{status:200,headers:{'Content-Type':IMAGE_TYPES[ext]||'application/octet-stream','X-TSS-Thumb':'1'}}));}
+ for(let i=0;i<pack.files.length;i+=40){
+  await Promise.all(pack.files.slice(i,i+40).map(f=>{const ext=f.path.split('.').pop().toLowerCase();return cache.put(f.path,new Response(f.bytes,{status:200,headers:{'Content-Type':IMAGE_TYPES[ext]||'application/octet-stream','X-TSS-Thumb':'1'}}));}));
+  onProgress({loaded:total*(0.85+0.15*Math.min(1,(i+40)/pack.files.length)),total});
+ }
  await cache.put('offline-assets.json',new Response(JSON.stringify(staticFiles),{headers:{'Content-Type':'application/json'}}));
  await persistSnapshot(cache,snapshot);
  const marker={version,revision:snapshot.revision,assetRevision:snapshot.assetRevision,buildRevision:snapshot.buildRevision,pack:true,packRevision:packRevision||pack.revision,photos:pack.files.length,date:new Date().toISOString()};
