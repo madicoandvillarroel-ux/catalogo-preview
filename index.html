@@ -22,6 +22,7 @@
 .my-order .mo-total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #0b1f33;margin-top:4px;padding:8px 0 2px;font-size:13px;font-weight:700;color:#000}
 .my-order .mo-total b{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
 .my-order .mo-note{font-size:11px;color:#a14324;margin:2px 0 6px}
+.p-signin{margin:0 0 4px;padding:10px 12px;border-radius:10px;background:#eef6ff;color:#0b2a4a;font-size:13px;line-height:1.4}.p-signin .quiet-link{font-weight:700;color:#126ca0;background:none;border:0;padding:0;cursor:pointer;font-size:13px}
 </style></head>
 <body>
 <a class="skip" href="#catalog">Skip to catalog</a>
@@ -54,10 +55,11 @@
 <div class="mobile-tray"><span><small>YOUR ORDER</small><strong id="tray-summary">Your order is ready to start</strong></span><button data-action="open-list">My order <span class="list-count">0</span><span aria-hidden="true">→</span></button></div>
 <dialog id="product-dialog" aria-labelledby="product-title"><div class="dialog-head"><span>CATALOG / PRODUCT DETAILS</span><button class="icon-btn close-dialog" aria-label="Close product details">×</button></div><div id="product-detail" tabindex="0"></div></dialog>
 <dialog id="profile-dialog" aria-labelledby="profile-title"><div class="dialog-head"><div><span>ONLY ONCE</span><h2 id="profile-title">Welcome aboard</h2></div><button class="icon-btn close-dialog" aria-label="Close">×</button></div><form id="profile-form" class="simple-form" novalidate>
+<p class="p-signin">Ordered with us before? <button type="button" class="quiet-link" data-action="open-login">Sign in with your email →</button><br><small>We fill in your name, WhatsApp and vessel.</small></p>
 <label>Email<input id="p-email" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com"></label>
 <label>WhatsApp <small>(optional)</small><input id="p-phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+63 912 345 6789"></label>
 <label>Your name<input id="p-contact" autocomplete="name" maxlength="100"></label>
-<label>Vessel<input id="p-vessel" autocomplete="off" maxlength="100" placeholder="e.g. MSC ESPANA"></label>
+<label>Vessel<input id="p-vessel" autocomplete="organization" maxlength="100" placeholder="e.g. MSC ESPANA"></label>
 <div class="p-row"><label>Port<select id="p-port"></select></label><label>Arrival day<input id="p-eta" type="date"></label></div>
 <div id="p-agent" hidden><label>Agent name<input id="p-agent-name" maxlength="120"></label><label>Agent phone<input id="p-agent-phone" type="tel" maxlength="50"></label><label>Agent email<input id="p-agent-email" type="email" maxlength="120"></label></div>
 <label class="consent"><input type="checkbox" id="p-privacy"> I accept the <a href="privacy.html" target="_blank" rel="noopener">privacy policy</a></label>
